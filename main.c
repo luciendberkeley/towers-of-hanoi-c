@@ -23,7 +23,7 @@ void generateBoard(Game* game) {
 
 		if(i == 0) {
 			for(int j=0; j < 8; j++) {
-				tower->disks[j] = 9-j;
+				tower->disks[j] = 8-j;
 			}
 			tower->topIndex = 7;
 		}
