@@ -10,12 +10,16 @@ typedef struct {
 
 typedef struct {
 	Tower board[3];
-	int gameOver;
+	int held;
+	int moves;
 } Game;
 
 void generateBoard(Game* game) {
+	game->held = -1;
+	game->moves = 0;
+
 	for(int i=0; i < 3; i++) {
-		Tower *tower;
+		Tower *tower = &game->board[i];
 		for(int j=0; j < 8; j++) {
 			tower->disks[j] = 0;
 		}
@@ -23,38 +27,119 @@ void generateBoard(Game* game) {
 
 		if(i == 0) {
 			for(int j=0; j < 8; j++) {
-				tower->disks[j] = 8-j;
+				tower->disks[j] = j + 1;
 			}
-			tower->topIndex = 7;
+			tower->topIndex = 0;
 		}
-		game->board[i] = *tower;
 	}
 }
 
 void printBoard(Game* game) {
-	for(int i=0; i < 3; i++) {
-		printf("[");
-		for(int j=0; j < 8; j++) {
-			for(int k=0; k < game->board[i][j]; k++) {
-				printf("#"); 
-			}
-			printf("\n");
+	char *lookup[] = {
+		"        |        ",
+		"       ###       ",
+		"      #####      ",
+		"     #######     ",
+		"    #########    ",
+		"   ###########   ",
+		"  #############  ",
+		" ############### ",
+		"#################",
+	};
+	
+	char *lookupHeld[] = {
+		"        |        ",
+		"       OOO       ",
+		"      OOOOO      ",
+		"     OOOOOOO     ",
+		"    OOOOOOOOO    ",
+		"   OOOOOOOOOOO   ",
+		"  OOOOOOOOOOOOO  ",
+		" OOOOOOOOOOOOOOO ",
+		"OOOOOOOOOOOOOOOOO",
+	};
+
+	for(int row=0; row < 8; row++) {
+		for(int i=0; i < 3; i++) {
+			printf("  ");
+			int val = game->board[i].disks[row];
+			if(game->held == i && game->board[i].topIndex == row) printf("%s", lookupHeld[val]);
+			else printf("%s", lookup[val]);
 		}
-		printf("]\n");
+
+		printf("  \n");
 	}
+}
+
+void gameMove(Game* game, int ind) {
+	int held = game->held;
+
+	if(held == -1) {
+		Tower *tower = &game->board[ind];
+		if(tower->topIndex == -1) {
+			return;
+		}
+		game->held = ind;
+		return;
+	}
+
+	if(held == ind) {
+		game->held = -1;
+		return;
+	}
+
+	Tower *heldTower = &game->board[held];
+	int heldTop = heldTower->topIndex;
+
+	Tower *targetTower = &game->board[ind];
+	int targetTop = targetTower->topIndex;
+
+	if(targetTop == -1) targetTop = 7;
+
+	if(targetTower->disks[targetTop] == 0 || targetTower->disks[targetTop] >= heldTower->disks[heldTop]) {
+		int newVal = heldTower->disks[heldTop];
+		heldTower->disks[heldTop] = 0;
+		heldTower->topIndex++;
+		if(targetTower->topIndex == -1) {
+			targetTower->disks[7] = newVal;
+			targetTower->topIndex = 7;
+		} else {
+			targetTower->disks[targetTop - 1] = newVal;
+			targetTower->topIndex = targetTop - 1;
+		}
+
+		if(heldTower->topIndex == 8) heldTower->topIndex = -1;
+
+		game->moves++;
+	}
+	
+	game->held = -1;
 }
 
 int gameLoop(int c, Game* game) {
 	system("clear");
 
-	if(c == 's') {
-		printf("Press arrow keys (or colemak eio) to start. q to quit\n");
-		return 1;
+	switch(c) {
+		case 's':
+			printf("Press arrow keys (or colemak eio) to start. q to quit\n");
+			return 1;
+		case 'q':
+			return 0;
+		case 'e':
+			gameMove(game, 0);
+			break;
+		case 'i':
+			gameMove(game, 1);
+			break;
+		case 'o':
+			gameMove(game, 2);
+			break;
+		default:
+			printf("Invalid key\n");
+			break;
 	}
 
-	if(c == 'q') return 0;
-
-	printf("Pressed: %c\n", c);
+	printf("Moves: %d\n", game->moves);
 	printBoard(game);
 
 	return 1;
@@ -71,13 +156,13 @@ int main() {
 	newt.c_lflag &= ~(ICANON | ECHO);
 	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
-	Game *game;
-	generateBoard(game);
-	gameLoop((int) 's', game);
+	Game game;
+	generateBoard(&game);
+	gameLoop((int) 's', &game);
 
 	while(1) {
 		ch = getchar();
-		if(gameLoop(ch, game) != 1) break;
+		if(gameLoop(ch, &game) != 1) break;
 	}
 
 	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
