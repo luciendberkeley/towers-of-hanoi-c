@@ -48,37 +48,24 @@ uint64_t getElapsed() {
 	}
 }
 
-void printBoard(Game* game) {
-	char *lookup[] = {
-		"        |        ",
-		"       ###       ",
-		"      #####      ",
-		"     #######     ",
-		"    #########    ",
-		"   ###########   ",
-		"  #############  ",
-		" ############### ",
-		"#################",
-	};
-	
-	char *lookupHeld[] = {
-		"        |        ",
-		"       OOO       ",
-		"      OOOOO      ",
-		"     OOOOOOO     ",
-		"    OOOOOOOOO    ",
-		"   OOOOOOOOOOO   ",
-		"  OOOOOOOOOOOOO  ",
-		" OOOOOOOOOOOOOOO ",
-		"OOOOOOOOOOOOOOOOO",
-	};
-
-	for(int row=0; row < COUNT; row++) {
+void printboard(game* game) {
+	for(int row=0; row < count; row++) {
 		for(int i=0; i < 3; i++) {
 			printf("  ");
 			int val = game->board[i].disks[row];
-			if(game->held == i && game->board[i].topIndex == row) printf("%s", lookupHeld[val]);
-			else printf("%s", lookup[val]);
+			int held = game->held == i && game->board[i].topindex == row;
+			for(int j=0; j < count * 2 + 1; j++) {
+				int occupied = (val == 0 ? -1 : val) >= abs(count - j);
+				if(held && occupied) {
+					printf("o");
+				} else if(!held && occupied) {
+					printf("#");
+				} else if(j == count) {
+					printf("|");
+				} else {
+					printf(" ");
+				}
+			}
 		}
 
 		printf("  \n");
