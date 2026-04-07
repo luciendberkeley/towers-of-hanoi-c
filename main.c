@@ -6,7 +6,8 @@
 #include <stdint.h>
 #include <math.h>
 
-#define COUNT 8
+#define COUNT 6
+#define TOWERS 3
 
 typedef struct {
 	int disks[COUNT];
@@ -14,7 +15,7 @@ typedef struct {
 } Tower;
 
 typedef struct {
-	Tower board[3];
+	Tower board[TOWERS];
 	int held;
 	int moves;
 } Game;
@@ -23,7 +24,7 @@ void generateBoard(Game* game) {
 	game->held = -1;
 	game->moves = 0;
 
-	for(int i=0; i < 3; i++) {
+	for(int i=0; i < TOWERS; i++) {
 		Tower *tower = &game->board[i];
 		for(int j=0; j < COUNT; j++) {
 			tower->disks[j] = 0;
@@ -48,19 +49,19 @@ uint64_t getElapsed() {
 	}
 }
 
-void printboard(game* game) {
-	for(int row=0; row < count; row++) {
-		for(int i=0; i < 3; i++) {
+void printBoard(Game* game) {
+	for(int row=0; row < COUNT; row++) {
+		for(int i=0; i < TOWERS; i++) {
 			printf("  ");
 			int val = game->board[i].disks[row];
-			int held = game->held == i && game->board[i].topindex == row;
-			for(int j=0; j < count * 2 + 1; j++) {
-				int occupied = (val == 0 ? -1 : val) >= abs(count - j);
+			int held = game->held == i && game->board[i].topIndex == row;
+			for(int j=0; j < COUNT * 2 + 1; j++) {
+				int occupied = (val == 0 ? -1 : val) >= abs(COUNT - j);
 				if(held && occupied) {
 					printf("o");
 				} else if(!held && occupied) {
 					printf("#");
-				} else if(j == count) {
+				} else if(j == COUNT) {
 					printf("|");
 				} else {
 					printf(" ");
@@ -73,6 +74,7 @@ void printboard(game* game) {
 }
 
 void gameMove(Game* game, int ind) {
+	if(ind >= TOWERS) return;
 	int held = game->held;
 
 	if(held == -1) {
@@ -135,12 +137,36 @@ int gameLoop(int c, Game* game, uint64_t startMS) {
 		case 'o':
 			gameMove(game, 2);
 			break;
+		case '1':
+			gameMove(game, 0);
+			break;
+		case '2':
+			gameMove(game, 1);
+			break;
+		case '3':
+			gameMove(game, 2);
+			break;
+		case '4':
+			gameMove(game, 3);
+			break;
+		case '5':
+			gameMove(game, 4);
+			break;
+		case '6':
+			gameMove(game, 5);
+			break;
+		case '7':
+			gameMove(game, 6);
+			break;
+		case '8':
+			gameMove(game, 7);
+			break;
 		default:
-			printf("Invalid key\n");
+			printf("Invalid key: %c\n", c);
 			break;
 	}
 
-	Tower *rightTower = &game->board[2];
+	Tower *rightTower = &game->board[COUNT - 1];
 	int ordered = 1;
 	for(int i=0; i < COUNT; i++) {
 		if(rightTower->disks[i] != i + 1) ordered = 0;
