@@ -166,7 +166,7 @@ int gameLoop(int c, Game* game, uint64_t startMS) {
 			break;
 	}
 
-	Tower *rightTower = &game->board[COUNT - 1];
+	Tower *rightTower = &game->board[TOWERS - 1];
 	int ordered = 1;
 	for(int i=0; i < COUNT; i++) {
 		if(rightTower->disks[i] != i + 1) ordered = 0;
